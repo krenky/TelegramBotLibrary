@@ -20,10 +20,10 @@ namespace TelegramBotLibrary.Messages
         public string Answer { get; set; }
         public IList<IMessage> Messages { get; set; }
 
-        public string GetMessage(Update update)
+        public IMessage GetMessage(Update update)
         {
             Action(update);
-            return Answer;
+            return this;
         }
 
         public void Action(Update update)
