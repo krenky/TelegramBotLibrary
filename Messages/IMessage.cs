@@ -23,7 +23,7 @@ namespace TelegramBotLibrary.Messages
         /// </summary>
         public IList<IMessage> Messages { get; set; }
 
-        public string GetMessage(Update update);
+        public IMessage GetMessage(Update update);
 
         /// <summary>
         /// Необходимое действие перед ответом

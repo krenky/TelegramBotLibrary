@@ -65,7 +65,16 @@ public class TelegramBot
                         {
                             allowedMessages = messages;
                         }
-                        await botClient.SendTextMessageAsync(update.Message.Chat, GetAnswer(update, allowedMessages));
+                        IMessage answerMessage = GetMessage(update, allowedMessages);
+                        if (answerMessage == null)
+                        {
+                            await botClient.SendTextMessageAsync(update.Message.Chat, "Команда недоступна");
+                        }
+                        else
+                        {
+                            await botClient.SendTextMessageAsync(update.Message.Chat, answerMessage.Answer);
+                            prevMessage = answerMessage;
+                        }
                     }
                     break;
             }
@@ -73,7 +82,7 @@ public class TelegramBot
             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(update));
         }
 
-        public virtual string GetAnswer(Update update, IList<IMessage> messages)
+        public virtual IMessage GetMessage(Update update, IList<IMessage> messages)
         {
             IMessage currentMessage = messages
                         .FirstOrDefault(x => x.ClientMessage == update.Message.Text.ToLower());
@@ -83,7 +92,7 @@ public class TelegramBot
             }
             else
             {
-                return "Команда недоступна";
+                return null;
             }
         }
 
