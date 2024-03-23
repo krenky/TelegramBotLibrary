@@ -1,8 +1,5 @@
-﻿using Telegram.Bot.Types;
-using Telegram.Bot;
+﻿using Telegram.Bot;
 using Telegram.Bot.Polling;
-using TelegramBotLibrary.Messages;
-using Telegram.Bot.Types.Enums;
 
 namespace TelegramBotLibrary
 {
@@ -12,88 +9,42 @@ namespace TelegramBotLibrary
     /// <example>
     /// <code>
     /// internal class Program
-    ///{
-    ///    static ITelegramBotClient bot = new TelegramBotClient("Token");
-    ///
-    ///
-    ///    static void Main(string[] args)
-    ///    {
-    ///        Console.WriteLine("Запущен бот " + bot.GetMeAsync().Result.FirstName);
-    ///        IList<IMessage> messages = new List<IMessage>() { new SimpleMessage("hello", "hello pedic") };
-    ///        TelegramBot botic = new TelegramBot(bot, messages);
-    ///        botic.Start();
-    ///    }
-    ///}
+    ///TelegramBotLibrary.Handlers.IUpdateHandler _updateHandler = new UpdateHandler(
+    ///    new MessageHandler(
+    ///        new List<IAnswer>()
+    ///        {
+    ///                new TextToTextAnswer(
+    ///                    new TextAnswerMessage("Hello"),
+    ///                    "Hi"
+    ///                    )
+    ///        }),
+    ///    new SendHandler()
+    ///    );
+    ///TelegramBot botic = new TelegramBot(bot, _updateHandler);
+    ///botic.Start();
     /// </code>
     /// </example>
-public class TelegramBot
+    public class TelegramBot
     {
-        ITelegramBotClient bot;
-        IList<IMessage> messages;
-        IMessage prevMessage;
+        ITelegramBotClient _bot;
+        Handlers.Interface.IUpdateHandler _updateHandler;
 
-        public TelegramBot(string token, IList<IMessage> messages)
+        public TelegramBot(string token, Handlers.Interface.IUpdateHandler updateHandler)
         {
             if (token != null)
-                this.bot = new TelegramBotClient(token);
+                this._bot = new TelegramBotClient(token);
             else
                 throw new ArgumentNullException(nameof(token));
-            this.messages = messages;
+             _updateHandler = updateHandler;
         }
 
-        public TelegramBot(ITelegramBotClient bot, IList<IMessage> messages)
+        public TelegramBot(ITelegramBotClient bot, Handlers.Interface.IUpdateHandler updateHandler)
         {
             if (bot != null)
-                this.bot = bot;
+                this._bot = bot;
             else
                 throw new ArgumentNullException(nameof(bot));
-            this.messages = messages;
-        }
-
-        public virtual async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
-        {
-            switch (update.Type)
-            {
-                case UpdateType.Message:
-                    {
-                        IList<IMessage> allowedMessages;
-                        if (prevMessage != null && prevMessage.Messages.Count != 0)
-                        {
-                            allowedMessages = prevMessage.Messages;
-                        }
-                        else
-                        {
-                            allowedMessages = messages;
-                        }
-                        IMessage answerMessage = GetMessage(update, allowedMessages);
-                        if (answerMessage == null)
-                        {
-                            await botClient.SendTextMessageAsync(update.Message.Chat, "Команда недоступна");
-                        }
-                        else
-                        {
-                            await botClient.SendTextMessageAsync(update.Message.Chat, answerMessage.Answer);
-                            prevMessage = answerMessage;
-                        }
-                    }
-                    break;
-            }
-            
-            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(update));
-        }
-
-        public virtual IMessage GetMessage(Update update, IList<IMessage> messages)
-        {
-            IMessage currentMessage = messages
-                        .FirstOrDefault(x => x.ClientMessage == update.Message.Text.ToLower());
-            if (currentMessage != null)
-            {
-                return currentMessage.GetMessage(update);
-            }
-            else
-            {
-                return null;
-            }
+            _updateHandler = updateHandler;
         }
 
         public virtual async Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
@@ -104,7 +55,7 @@ public class TelegramBot
 
         public virtual void Start()
         {
-            Console.WriteLine("Запущен бот " + bot.GetMeAsync().Result.FirstName);
+            Console.WriteLine("Запущен бот " + _bot.GetMeAsync().Result.FirstName);
 
             var cts = new CancellationTokenSource();
             var cancellationToken = cts.Token;
@@ -112,8 +63,8 @@ public class TelegramBot
             {
                 AllowedUpdates = { }, // receive all update types
             };
-            bot.StartReceiving(
-                HandleUpdateAsync,
+            _bot.StartReceiving(
+                _updateHandler.HandleUpdateAsync,
                 HandleErrorAsync,
                 receiverOptions,
                 cancellationToken
