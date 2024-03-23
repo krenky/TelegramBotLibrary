@@ -5,7 +5,7 @@ using TelegramBotLibrary.AnswerMessages.Interface;
 namespace TelegramBotLibrary.Answers.Interface
 {
     /// <summary>
-    /// Класс ответа
+    /// Ответ.
     /// </summary>
     public interface IAnswer
     {
