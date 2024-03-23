@@ -9,6 +9,6 @@ namespace TelegramBotLibrary.Answers.Interface
         /// </summary>
         /// <param name="message">Сообщение клиента</param>
         /// <returns></returns>
-        public Task GaneratedAnswer(Message message);
+        public Task GeneratedAnswer(Message message);
     }
 }
